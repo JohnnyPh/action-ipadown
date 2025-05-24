@@ -58,7 +58,7 @@ jobs:
         shell: bash
 
       - name: Set up git repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup ipatool-py
         run: |
@@ -107,12 +107,12 @@ jobs:
               output=$(python3 ipatool-py/main.py --json download -o ipaDown -s http://127.0.0.1:9000 --appId ${{ github.event.inputs.id }} $appVerCmd)
             fi
             echo "Got Downloading JSON result: $output"
-            echo "::set-output name=needIPARelease::1"
-            echo "::set-output name=appName::$(echo "$output" | jq -r '.appName')"
-            echo "::set-output name=appBundleId::$(echo "$output" | jq -r '.appBundleId')"
-            echo "::set-output name=appVer::$(echo "$output" | jq -r '.appVer')"
-            echo "::set-output name=appId::$(echo "$output" | jq -r '.appId')"
-            echo "::set-output name=appVerId::$(echo "$output" | jq -r '.appVerId')"
+            echo "needIPARelease=1" >> $GITHUB_ENV
+            echo "appName=$(echo "$output" | jq -r '.appName')" >> $GITHUB_ENV
+            echo "appBundleId=$(echo "$output" | jq -r '.appBundleId')" >> $GITHUB_ENV
+            echo "appVer=$(echo "$output" | jq -r '.appVer')" >> $GITHUB_ENV
+            echo "appId=$(echo "$output" | jq -r '.appId')" >> $GITHUB_ENV
+            echo "appVerId=$(echo "$output" | jq -r '.appVerId')" >> $GITHUB_ENV
           else
             echo "Unknown Operation: $op"
           fi
@@ -124,7 +124,7 @@ jobs:
           path: ipaDown\*
 
       - name: Split ipa
-        if: ${{ steps.operation.outputs.needIPARelease == '1' }}
+        if: ${{ env.needIPARelease == '1' }}
         run: |
           mkdir -p ipaDown_split
           (cd ipaDown; find . -name "*.ipa" -size +1879048192b -exec split --bytes=1879048192 --suffix-length=3 --numeric-suffix {} ../ipaDown_split/{}. \;)
@@ -132,22 +132,21 @@ jobs:
         shell: bash
       
       - name: Pushing to release
-        if: ${{ steps.operation.outputs.needIPARelease == 1 }}
+        if: ${{ env.needIPARelease == '1' }}
         uses: ncipollo/release-action@v1
         with:
-          name: "IPADown: ${{ steps.operation.outputs.appName }} - ${{ steps.operation.outputs.appVer }}"
+          name: "IPADown: ${{ env.appName }} - ${{ env.appVer }}"
           body: >-
             ${{ format(fromJSON('"appName: {0}\nappBundleId: {1}\nappVer: {2}\nappId: {3}\nappVerId: {4}\n"'), 
-                  steps.operation.outputs.appName, 
-                  steps.operation.outputs.appBundleId, 
-                  steps.operation.outputs.appVer, 
-                  steps.operation.outputs.appId, 
-                  steps.operation.outputs.appVerId
+                  env.appName, 
+                  env.appBundleId, 
+                  env.appVer, 
+                  env.appId, 
+                  env.appVerId
                 ) }}
           commit: ${{ github.sha }}
-          tag: "${{ steps.operation.outputs.appBundleId }}-${{ steps.operation.outputs.appId }}-${{ steps.operation.outputs.appVerId }}"
+          tag: "${{ env.appBundleId }}-${{ env.appId }}-${{ env.appVerId }}"
           artifacts: ipaDown_split\*
-
           allowUpdates: true
           removeArtifacts: true
           replacesArtifacts: true

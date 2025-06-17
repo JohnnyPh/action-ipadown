@@ -19,13 +19,14 @@ on:
       operation:
         description: 'Operation to do, choices: lookup, historyver, download, historyver_id, download_id'
         default: 'download'
+        required: true
       
       appBundleId:
-        description: 'AppStore Bundle-ID (needed when using non-*_id operations)'
-        required: false
+        description: 'AppStore Bundle-ID (FB:com.facebook.Facebook, Mess:com.facebook.Messenger, Ins:com.burbn.instagram)'
+        required: true
       appCountry:
         description: 'AppStore Country (needed when using non-*_id operations)'
-        required: false
+        required: true
         default: 'VN'
       
       appVerId:
@@ -33,8 +34,8 @@ on:
         required: false
 
       appId:
-        description: 'App Id Number (needed when using *_id operations)'
-        required: false
+        description: 'App Id Number (FB:284882215, Mess:454638411, Ins:389801252)'
+        required: true
       
       debug_enabled:
         description: 'Run the build with RDP debugging enabled'

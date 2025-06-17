@@ -137,7 +137,7 @@ jobs:
         if: ${{ env.needIPARelease == '1' }}
         uses: ncipollo/release-action@v1
         with:
-          name: "IPADown: ${{ env.appName }} - ${{ env.appVer }}"
+          name: "${{ env.appName }} - ${{ env.appVer }}"
           body: >-
             ${{ format(fromJSON('"appName: {0}\nappBundleId: {1}\nappVer: {2}\nappId: {3}\nappVerId: {4}\n"'), 
                   env.appName, 
